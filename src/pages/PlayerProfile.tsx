@@ -7,7 +7,6 @@ import { refreshRankings, getPlayerHistoricalSummary, getHistoricalRankings, get
 import type { TeamId, PlayerRole, SearchResult } from '../types/cricket';
 import { TEAMS, ROLE_LABELS, ROLE_ICONS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
-import AnimatedTimeline from '../components/AnimatedTimeline';
 
 const PlayerProfile = () => {
   const { teamId, playerId } = useParams<{ teamId: TeamId; playerId: string }>();
