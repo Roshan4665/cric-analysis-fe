@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiTrendingUp, FiTrendingDown, FiAward, FiHelpCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiTrendingUp, FiAward, FiHelpCircle } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { refreshRankings, getPlayerHistoricalSummary, getHistoricalRankings, getSnapshotDetails, findPlayerProfiles } from '../services/api';
 import type { TeamId, PlayerRole, SearchResult } from '../types/cricket';

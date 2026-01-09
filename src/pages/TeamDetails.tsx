@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiRefreshCw, FiHelpCircle } from 'react-icons/fi';
 import { refreshRankings } from '../services/api';
-import type { TeamId, PlayerRole, BatsmanRanking, BowlerRanking, AllrounderRanking } from '../types/cricket';
+import type { TeamId, PlayerRole} from '../types/cricket';
 import { TEAMS, MATCH_OPTIONS, DEFAULT_MATCHES, ROLE_LABELS, ROLE_ICONS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 

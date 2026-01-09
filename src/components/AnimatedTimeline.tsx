@@ -29,7 +29,6 @@ const SPEED_OPTIONS = [
 
 const AnimatedTimeline = ({ 
   snapshots, 
-  playerId,
   fetchSnapshotData,
   title = 'Animated Performance Timeline' 
 }: AnimatedTimelineProps) => {
