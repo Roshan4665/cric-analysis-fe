@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiTrendingUp, FiAward, FiHelpCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiTrendingUp, FiAward, FiHelpCircle, FiChevronRight } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { refreshRankings, getPlayerHistoricalSummary, getHistoricalRankings, getSnapshotDetails, findPlayerProfiles } from '../services/api';
 import type { TeamId, PlayerRole, SearchResult } from '../types/cricket';
@@ -294,7 +294,7 @@ const PlayerProfile = () => {
                   }
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className="glass-card p-4 text-left hover:bg-dark-card/70 transition-all"
+                  className="glass-card p-4 text-left hover:bg-dark-card/70 transition-all border-2 border-transparent hover:border-primary/30"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-2xl">{ROLE_ICONS[profile.role]}</span>
@@ -309,6 +309,7 @@ const PlayerProfile = () => {
                         {TEAMS[profile.teamId].fullName}
                       </div>
                     </div>
+                    <FiChevronRight className="text-gray-400 text-xl flex-shrink-0" />
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-dark-border">
                     <div>
@@ -415,25 +416,35 @@ const PlayerProfile = () => {
           </motion.div>
         )}
 
-        {/* Animated Timeline */}
+        {/* View Animation Button */}
         {snapshotMetadata.length > 0 && teamId && playerId && role && (
-          <AnimatedTimeline 
-            snapshots={snapshotMetadata}
-            playerId={Number(playerId)}
-            fetchSnapshotData={async (snapshotId: string) => {
-              const details = await getSnapshotDetails<any>(snapshotId);
-              const player = details.rankings.find((p: any) => p.playerId === Number(playerId));
-              
-              if (player) {
-                const rank = details.rankings.indexOf(player) + 1;
-                return {
-                  rating: player.playerPoints,
-                  rank,
-                };
-              }
-              return null;
-            }}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="glass-card p-6 mt-6"
+          >
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-100 mb-4">
+                Match-by-Match Performance Animation
+              </h2>
+              <p className="text-gray-400 mb-6">
+                See how this player's rating evolved over time with an animated timeline
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() =>
+                  navigate(`/team/${teamId}/player/${playerId}/animation`, {
+                    state: { role, playerName: playerData.playerName },
+                  })
+                }
+                className="btn-primary px-8 py-3 text-lg"
+              >
+                View Animated Timeline
+              </motion.button>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>

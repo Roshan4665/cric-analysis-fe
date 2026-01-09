@@ -307,7 +307,11 @@ const AnimatedTimeline = ({
                 height={80}
                 interval={Math.max(0, Math.floor(visibleData.length / 20))}
               />
-              <YAxis stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+              <YAxis 
+                stroke="#9ca3af" 
+                tick={{ fill: '#9ca3af' }}
+                domain={[400, 1000]}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#1a1f2e',

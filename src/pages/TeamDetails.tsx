@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiRefreshCw, FiHelpCircle } from 'react-icons/fi';
+import { FiRefreshCw, FiHelpCircle, FiChevronRight } from 'react-icons/fi';
 import { refreshRankings } from '../services/api';
 import type { TeamId, PlayerRole} from '../types/cricket';
 import { TEAMS, MATCH_OPTIONS, DEFAULT_MATCHES, ROLE_LABELS, ROLE_ICONS } from '../utils/constants';
@@ -93,20 +93,23 @@ const TeamDetails = () => {
 
           {/* Controls */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
-              {MATCH_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setMatches(option)}
-                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                    matches === option
-                      ? 'bg-primary text-white'
-                      : 'bg-dark-card text-gray-400 hover:text-gray-200'
-                  }`}
-                >
-                  Last {option}
-                </button>
-              ))}
+            <div className="w-full sm:w-auto">
+              <div className="text-sm text-gray-400 mb-2">Number of Matches:</div>
+              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+                {MATCH_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setMatches(option)}
+                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+                      matches === option
+                        ? 'bg-primary text-white'
+                        : 'bg-dark-card text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <motion.button
@@ -186,7 +189,7 @@ const TeamDetails = () => {
                     onClick={() => handlePlayerClick(player.playerId)}
                     className="glass-card p-4 cursor-pointer hover:bg-dark-card/70 transition-all"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 flex-1">
                         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-dark-bg/50 font-bold text-gray-300">
                           #{index + 1}
@@ -220,23 +223,26 @@ const TeamDetails = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">
-                          {player.playerPoints.toFixed(0)}
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">
+                            {player.playerPoints.toFixed(0)}
+                          </div>
+                          <div className="text-xs text-gray-500">Rating</div>
+                          <div className="mt-1">
+                            <span
+                              className={`inline-block w-16 h-1.5 rounded-full ${
+                                player.confidence >= 0.8
+                                  ? 'bg-green-500'
+                                  : player.confidence >= 0.5
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
+                              }`}
+                              title={`Confidence: ${(player.confidence * 100).toFixed(0)}%`}
+                            />
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">Rating</div>
-                        <div className="mt-1">
-                          <span
-                            className={`inline-block w-16 h-1.5 rounded-full ${
-                              player.confidence >= 0.8
-                                ? 'bg-green-500'
-                                : player.confidence >= 0.5
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
-                            }`}
-                            title={`Confidence: ${(player.confidence * 100).toFixed(0)}%`}
-                          />
-                        </div>
+                        <FiChevronRight className="text-gray-400 text-xl flex-shrink-0" />
                       </div>
                     </div>
                   </motion.div>
