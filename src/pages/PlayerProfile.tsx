@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiTrendingUp, FiAward, FiHelpCircle, FiChevronRight } from 'react-icons/fi';
+import { FiArrowLeft, FiTrendingUp, FiTrendingDown, FiAward, FiHelpCircle, FiChevronRight } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { refreshRankings, getPlayerHistoricalSummary, getHistoricalRankings, getSnapshotDetails, findPlayerProfiles } from '../services/api';
+import { refreshRankings, getPreviousRanking, getPlayerHistoricalSummary, getHistoricalRankings, getSnapshotDetails, findPlayerProfiles } from '../services/api';
 import type { TeamId, PlayerRole, SearchResult } from '../types/cricket';
 import { TEAMS, ROLE_LABELS, ROLE_ICONS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,6 +15,8 @@ const PlayerProfile = () => {
   const role = (location.state as any)?.role as PlayerRole | undefined;
 
   const [playerData, setPlayerData] = useState<any>(null);
+  const [previousPlayerData, setPreviousPlayerData] = useState<any>(null);
+  const [previousRank, setPreviousRank] = useState<number>(0);
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
   const [snapshotMetadata, setSnapshotMetadata] = useState<any[]>([]);
@@ -27,6 +29,8 @@ const PlayerProfile = () => {
   useEffect(() => {
     // Reset state immediately when route changes to prevent rendering stale data
     setPlayerData(null);
+    setPreviousPlayerData(null);
+    setPreviousRank(0);
     setHistoricalData(null);
     setChartData([]);
     setSnapshotMetadata([]);
@@ -46,13 +50,27 @@ const PlayerProfile = () => {
 
     setLoading(true);
     try {
-      // Get current rankings to find player
-      const rankings = await refreshRankings<any>(role, teamId, 10);
+      // Get current and previous rankings to find player
+      const [rankings, prevRankings] = await Promise.all([
+        refreshRankings<any>(role, teamId, 10),
+        getPreviousRanking<any>(role, teamId, 10).catch(() => [])
+      ]);
+      
       const player = rankings.find((p: any) => p.playerId === Number(playerId));
       const rank = rankings.findIndex((p: any) => p.playerId === Number(playerId)) + 1;
       
       setPlayerData(player);
       setCurrentRank(rank);
+
+      // Find previous player data
+      if (prevRankings.length > 0) {
+        const prevPlayer = prevRankings.find((p: any) => p.playerId === Number(playerId));
+        if (prevPlayer) {
+          const prevRank = prevRankings.findIndex((p: any) => p.playerId === Number(playerId)) + 1;
+          setPreviousPlayerData(prevPlayer);
+          setPreviousRank(prevRank);
+        }
+      }
 
       // Get historical data for all roles
       try {
@@ -224,6 +242,59 @@ const PlayerProfile = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Change from Last Match */}
+        {previousPlayerData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="glass-card p-4 mb-6"
+          >
+            <h3 className="text-sm font-semibold text-gray-400 mb-3">Change from Last Match</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Rank Change */}
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Rank</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-base sm:text-lg font-bold text-gray-300">#{previousRank}</span>
+                  {previousRank !== currentRank ? (
+                    <>
+                      {previousRank > currentRank ? (
+                        <FiTrendingUp className="text-green-500 flex-shrink-0" size={14} />
+                      ) : (
+                        <FiTrendingDown className="text-red-500 flex-shrink-0" size={14} />
+                      )}
+                      <span className="text-base sm:text-lg font-bold text-gray-300">#{currentRank}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs sm:text-sm text-gray-500">(No change)</span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Rating Change */}
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Rating</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-base sm:text-lg font-bold text-primary">{previousPlayerData.playerPoints.toFixed(0)}</span>
+                  {previousPlayerData.playerPoints !== playerData.playerPoints ? (
+                    <>
+                      {playerData.playerPoints > previousPlayerData.playerPoints ? (
+                        <FiTrendingUp className="text-green-500 flex-shrink-0" size={14} />
+                      ) : (
+                        <FiTrendingDown className="text-red-500 flex-shrink-0" size={14} />
+                      )}
+                      <span className="text-base sm:text-lg font-bold text-primary">{playerData.playerPoints.toFixed(0)}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs sm:text-sm text-gray-500">(No change)</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Recent Performance Stats */}
         <motion.div

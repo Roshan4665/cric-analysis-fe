@@ -3,6 +3,14 @@ import type { TeamInfo } from '../types/cricket';
 export const API_BASE_URL = "https://cricket-data-engine-364306697106.asia-south1.run.app/";
 export const API_BASE_URL_LOCAL = 'http://localhost:8080';
 
+// Dynamic API URL based on environment
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return API_BASE_URL_LOCAL;
+  }
+  return API_BASE_URL;
+};
+
 export const TEAMS: Record<string, TeamInfo> = {
   kr: {
     id: 'kr',

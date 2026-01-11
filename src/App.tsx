@@ -6,6 +6,7 @@ import TeamDetails from './pages/TeamDetails';
 import PlayerProfile from './pages/PlayerProfile';
 import AnimationPage from './pages/AnimationPage';
 import Methodology from './pages/Methodology';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/team/:teamId/player/:playerId" element={<PlayerProfile />} />
             <Route path="/team/:teamId/player/:playerId/animation" element={<AnimationPage />} />
             <Route path="/methodology" element={<Methodology />} />
+            <Route path="/admin-historical-refresh-panel-2026" element={<AdminPanel />} />
           </Routes>
         </AnimatePresence>
       </div>

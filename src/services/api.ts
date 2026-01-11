@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import { getApiBaseUrl } from '../utils/constants';
 import type {
   TeamId,
   PlayerRole,
@@ -13,7 +13,7 @@ import type {
 } from '../types/cricket';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   timeout: 10000,
 });
 
@@ -38,6 +38,20 @@ export const refreshRankings = async <T>(
   matches: number
 ): Promise<T[]> => {
   const response = await api.get('/rankings/refreshRankings', {
+    params: { role, teamId, matches },
+  });
+  
+  // API returns data wrapped in rankings property
+  return response.data.rankings || [];
+};
+
+// Get Previous Rankings (1 match older) - Returns array in rankings property
+export const getPreviousRanking = async <T>(
+  role: PlayerRole,
+  teamId: TeamId,
+  matches: number
+): Promise<T[]> => {
+  const response = await api.get('/rankings/getPreviousRanking', {
     params: { role, teamId, matches },
   });
   

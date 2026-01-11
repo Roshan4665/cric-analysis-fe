@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiRefreshCw, FiHelpCircle, FiChevronRight } from 'react-icons/fi';
-import { refreshRankings } from '../services/api';
+import { FiRefreshCw, FiHelpCircle, FiChevronRight, FiTrendingUp, FiTrendingDown} from 'react-icons/fi';
+import { refreshRankings, getPreviousRanking } from '../services/api';
 import type { TeamId, PlayerRole} from '../types/cricket';
 import { TEAMS, MATCH_OPTIONS, DEFAULT_MATCHES, ROLE_LABELS, ROLE_ICONS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -13,6 +13,7 @@ const TeamDetails = () => {
   const [activeRole, setActiveRole] = useState<PlayerRole>('batsman');
   const [matches, setMatches] = useState(DEFAULT_MATCHES);
   const [rankings, setRankings] = useState<any[]>([]);
+  const [previousRankings, setPreviousRankings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -34,11 +35,16 @@ const TeamDetails = () => {
     setLoading(true);
     try {
       console.log("fetching rankings for : ", activeRole);
-      const rankings = await refreshRankings<any>(activeRole, teamId, matches);
-      setRankings(rankings || []);
+      const [currentRankings, prevRankings] = await Promise.all([
+        refreshRankings<any>(activeRole, teamId, matches),
+        getPreviousRanking<any>(activeRole, teamId, matches).catch(() => [])
+      ]);
+      setRankings(currentRankings || []);
+      setPreviousRankings(prevRankings || []);
     } catch (error) {
       console.error('Error fetching rankings:', error);
       setRankings([]);
+      setPreviousRankings([]);
     } finally {
       setLoading(false);
     }
@@ -49,14 +55,37 @@ const TeamDetails = () => {
     
     setRefreshing(true);
     try {
-      const rankings = await refreshRankings<any>(activeRole, teamId, matches);
-      setRankings(rankings || []);
+      const [currentRankings, prevRankings] = await Promise.all([
+        refreshRankings<any>(activeRole, teamId, matches),
+        getPreviousRanking<any>(activeRole, teamId, matches).catch(() => [])
+      ]);
+      setRankings(currentRankings || []);
+      setPreviousRankings(prevRankings || []);
     } catch (error) {
       console.error('Error refreshing rankings:', error);
       setRankings([]);
+      setPreviousRankings([]);
     } finally {
       setRefreshing(false);
     }
+  };
+
+  // Helper function to get player change info
+  const getPlayerChange = (player: any, currentRank: number) => {
+    if (!previousRankings || previousRankings.length === 0) {
+      return { rankChange: 0, ratingChange: 0, previousRank: null };
+    }
+    
+    const prevPlayer = previousRankings.find((p: any) => p.playerId === player.playerId);
+    if (!prevPlayer) {
+      return { rankChange: 0, ratingChange: 0, previousRank: null };
+    }
+    
+    const previousRank = previousRankings.indexOf(prevPlayer) + 1;
+    const rankChange = previousRank - currentRank; // Positive = improved
+    const ratingChange = player.playerPoints - prevPlayer.playerPoints;
+    
+    return { rankChange, ratingChange, previousRank };
   };
 
   const handlePlayerClick = (playerId: number) => {
@@ -179,7 +208,11 @@ const TeamDetails = () => {
                   No rankings available
                 </div>
               ) : (
-                rankings.map((player, index) => (
+                rankings.map((player, index) => {
+                  const currentRank = index + 1;
+                  const { rankChange, ratingChange } = getPlayerChange(player, currentRank);
+                  
+                  return (
                   <motion.div
                     key={player.playerId}
                     initial={{ opacity: 0, y: 20 }}
@@ -191,8 +224,13 @@ const TeamDetails = () => {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-dark-bg/50 font-bold text-gray-300">
-                          #{index + 1}
+                        <div className="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-dark-bg/50 font-bold text-gray-300">
+                          <span>#{currentRank}</span>
+                          {rankChange !== 0 && (
+                            <span className={`text-[10px] flex items-center ${rankChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {rankChange > 0 ? <FiTrendingUp size={10} /> : <FiTrendingDown size={10} />}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg text-gray-100">
@@ -225,8 +263,15 @@ const TeamDetails = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">
-                            {player.playerPoints.toFixed(0)}
+                          <div className="flex items-center justify-end gap-1">
+                            <div className="text-2xl font-bold text-primary">
+                              {player.playerPoints.toFixed(0)}
+                            </div>
+                            {ratingChange !== 0 && (
+                              <span className={`text-xs font-medium ${ratingChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {ratingChange > 0 ? '+' : ''}{ratingChange.toFixed(0)}
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-gray-500">Rating</div>
                           <div className="mt-1">
@@ -246,7 +291,8 @@ const TeamDetails = () => {
                       </div>
                     </div>
                   </motion.div>
-                ))
+                  );
+                })
               )}
             </motion.div>
           )}
